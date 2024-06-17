@@ -11,8 +11,11 @@ import { Trip } from '../models/trip';
   styleUrl: './trip-card.component.css'
 })
 export class TripCardComponent implements OnInit {
+
   @Input('trip') trip: any;
+
   constructor(private router: Router) { }
+
   ngOnInit(): void {
 
   }
@@ -22,5 +25,4 @@ export class TripCardComponent implements OnInit {
     localStorage.setItem('tripCode', trip.code);
     this.router.navigate(['edit-trip']);
   }
-
 }

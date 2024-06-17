@@ -6,7 +6,7 @@ import { TripListingComponent } from './trip-listing/trip-listing.component';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, TripListingComponent, CommonModule],
+  imports: [CommonModule, RouterOutlet, TripListingComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

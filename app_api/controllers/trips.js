@@ -1,49 +1,38 @@
-// app_api/controllers/trips.js
-
 const fs = require("fs");
 const path = require("path");
 const Trip = require("../models/travlr");
 
-const tripsFilePath = path.join(
-    __dirname,
-    "..",
-    "..",
-    "public",
-    "data",
-    "trips.json"
-);
-
-const tripsList = (req, res) => {
-    fs.readFile(tripsFilePath, "utf8", (err, data) => {
-        if (err) {
-            res.status(500).json({ error: "Could not read file" });
-        } else {
-            const trips = JSON.parse(data);
-            res.status(200).json(trips);
-        }
-    });
+// Fetch all trips from the database
+const tripsList = async (req, res) => {
+    try {
+        const trips = await Trip.find();
+        console.log("Fetched trips from database: ", trips);
+        res.status(200).json(trips);
+    } catch (err) {
+        console.error("Error fetching trips: ", err);
+        res.status(500).json({ error: err.message });
+    }
 };
 
-const tripsFindByCode = (req, res) => {
+// Fetch a trip by its code from the database
+const tripsFindByCode = async (req, res) => {
     const tripCode = req.params.tripCode;
-    fs.readFile(tripsFilePath, "utf8", (err, data) => {
-        if (err) {
-            res.status(500).json({ error: "Could not read file" });
+    try {
+        const trip = await Trip.findOne({ code: tripCode });
+        if (trip) {
+            res.status(200).json(trip);
         } else {
-            const trips = JSON.parse(data);
-            const trip = trips.find((t) => t.code === tripCode);
-            if (trip) {
-                res.status(200).json(trip);
-            } else {
-                res.status(404).json({ message: "Trip not found" });
-            }
+            res.status(404).json({ message: "Trip not found" });
         }
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 };
 
-// POST: /trips - adds a new trip
-// Regardless of outcome, response must include HTML status code and JSON message to the requesting client
+// Add a new trip to the database
 const tripsAddTrip = async (req, res) => {
+    console.log("Received data for new trip:", req.body);
+
     const newTrip = new Trip({
         code: req.body.code,
         name: req.body.name,
@@ -56,27 +45,17 @@ const tripsAddTrip = async (req, res) => {
     });
 
     try {
-        const q = await newTrip.save();
-
-        if (!q) {
-            // Database returned no data
-            return res.status(400).json({ error: "Trip could not be added" });
-        } else {
-            // Return new trip
-            return res.status(201).json(q);
-        }
+        const savedTrip = await newTrip.save();
+        console.log("Saved trip to database:", savedTrip);
+        return res.status(201).json(savedTrip);
     } catch (err) {
+        console.error("Error saving trip:", err);
         return res.status(500).json({ error: err.message });
     }
 };
 
-// PUT: /trips/:tripCode - Updates a trip
-// Regardless of outcome, response must include HTML status code and JSON message to the requesting client
+// Update a trip in the database
 const tripsUpdateTrip = async (req, res) => {
-    // Uncomment for debugging
-    // console.log(req.params);
-    // console.log(req.body);
-
     try {
         const q = await Trip.findOneAndUpdate(
             { code: req.params.tripCode },
